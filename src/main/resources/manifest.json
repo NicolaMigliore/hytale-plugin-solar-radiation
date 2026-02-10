@@ -1,20 +1,20 @@
 {
-    "Group": "HytaleModding",
-    "Name": "ExamplePlugin",
+    "Group": "io.github.nicolamigliore",
+    "Name": "SolarRadiationPlugin",
     "Version": "0.0.0",
-    "Description": "Description of your plugin",
+    "Description": "This plugin adds new radiation mechanics designed to encourage players to venture out at night and make preparations before braving the sunlight.",
     "Authors": [
         {
-            "Name": "Your Name",
-            "Email": "your.email@example.com",
-            "Url": "https://your-website.com"
+            "Name": "Elfamir (AKA Nicola Migliore)",
+            "Email": "nicola.migliore@hotmail.it",
+            "Url": "https://github.com/NicolaMigliore"
         }
     ],
-    "Website": "https://your-plugin-website.com",
+    "Website": "https://github.com/NicolaMigliore/hp-plugin-solar-radiation",
     "DisabledByDefault": false,
     "IncludesAssetPack": false,
     "Dependencies": {},
     "OptionalDependencies": {},
     "ServerVersion": "*",
-    "Main": "dev.hytalemodding.ExamplePlugin"
+    "Main": "io.github.nicolamigliore.SolarRadiationPlugin"
 }
