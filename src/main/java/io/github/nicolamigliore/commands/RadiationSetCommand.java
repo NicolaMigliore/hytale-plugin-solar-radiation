@@ -4,6 +4,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.hypixel.hytale.server.core.command.system.arguments.system.OptionalArg;
 import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
@@ -13,17 +14,22 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import io.github.nicolamigliore.components.RadiationComponent;
+import io.github.nicolamigliore.components.RadiationComponentOld;
+import io.github.nicolamigliore.events.ChangeRadiationEvent;
 import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
 
 public class RadiationSetCommand extends AbstractPlayerCommand {
-    @Nonnull
-    private final RequiredArg<Integer> radLevelArg = this.withRequiredArg("radlevel", "New radiation level", ArgTypes.INTEGER);
+
+    private static final int DEFAULT_AMOUNT = 50;
+
+    private final OptionalArg<Integer> amountArg;
 
     public RadiationSetCommand(){
-        super("radiationset", "Super radiation set command!");
+        super("set", "Set your radiations");
+        this.amountArg = withOptionalArg("amount", "Radiation amount", ArgTypes.INTEGER);
     }
 
     @Override
@@ -34,38 +40,27 @@ public class RadiationSetCommand extends AbstractPlayerCommand {
             @NonNullDecl PlayerRef playerRef,
             @NonNullDecl World world
     ) {
-        int radLevel = this.radLevelArg.get(commandContext);
-        setEntityRadiationLevel(ref, store, radLevel);
-    }
+        var amount = this.amountArg.get(commandContext);
+        if (amount == null) amount = DEFAULT_AMOUNT;
 
-    public static void setEntityRadiationLevel(
-            @NonNullDecl Ref<EntityStore> ref,
-            @Nonnull Store<EntityStore> store,
-            int radiationLevel
-    ){
-        // Get radiation component
+        Player player = store.getComponent(ref, Player.getComponentType());
         RadiationComponent radComponent = store.getComponent(ref, RadiationComponent.getComponentType());
 
         if(radComponent == null){
             // Create radiation component
-            radComponent = new RadiationComponent(radiationLevel);
-
-            // Configure radiation component
-            radComponent.setDuration(5.0f);
-            radComponent.setTimer(0.0f);
+            radComponent = new RadiationComponent(0);
 
             // Add component
             store.addComponent(ref, RadiationComponent.getComponentType(), radComponent);
+            player.sendMessage(Message.raw("Added new Radiation Component"));
         }
 
-        // Set radiation level
-        radComponent.setRadiationLevel(radiationLevel);
+        // Set radiation
+        float oldAmount = radComponent.getTotalRadiations();
+        float amountToAdd = amount - oldAmount;
+        ChangeRadiationEvent.dispatch(ref, amountToAdd);
 
-        // Get entity UUID
-        UUIDComponent uuidComponent = store.getComponent(ref, UUIDComponent.getComponentType());
-
-        Player player = store.getComponent(ref, Player.getComponentType());
-        player.sendMessage(Message.raw("Your id is: " + uuidComponent.getUuid() + " radiation level is: " + radComponent.getRadiationLevel())
+        player.sendMessage(Message.raw("New total radiations: %.2f".formatted(radComponent.getTotalRadiations()))
                 .color(Color.GREEN)
                 .bold(true));
     }
