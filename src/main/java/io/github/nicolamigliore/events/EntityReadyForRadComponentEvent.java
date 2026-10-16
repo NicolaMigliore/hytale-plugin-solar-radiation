@@ -3,18 +3,18 @@ package io.github.nicolamigliore.events;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.Message;
-import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import io.github.nicolamigliore.components.RadiationComponentOld;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 public class EntityReadyForRadComponentEvent {
     public static void onPlayerReady(PlayerReadyEvent event) {
-        Player player = event.getPlayer();
-        player.sendMessage(Message.raw(player.getDisplayName() + " is ready for a radiation component"));
-
         Ref<EntityStore> playerRef = event.getPlayerRef();
-        player.sendMessage(Message.raw("ref from event: " + playerRef.toString()));
+        PlayerRef recipient = playerRef.getStore().getComponent(playerRef, PlayerRef.getComponentType());
+        if (recipient == null) return;
+        recipient.sendMessage(Message.raw(recipient.getUsername() + " is ready for a radiation component"));
+        recipient.sendMessage(Message.raw("ref from event: " + playerRef.toString()));
 
         // Add RadiationComponent if entity does not have it.
         Store<EntityStore> store = playerRef.getStore();

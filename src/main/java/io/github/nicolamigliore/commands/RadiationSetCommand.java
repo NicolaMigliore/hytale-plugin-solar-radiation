@@ -43,7 +43,6 @@ public class RadiationSetCommand extends AbstractPlayerCommand {
         var amount = this.amountArg.get(commandContext);
         if (amount == null) amount = DEFAULT_AMOUNT;
 
-        Player player = store.getComponent(ref, Player.getComponentType());
         RadiationComponent radComponent = store.getComponent(ref, RadiationComponent.getComponentType());
 
         if(radComponent == null){
@@ -52,7 +51,7 @@ public class RadiationSetCommand extends AbstractPlayerCommand {
 
             // Add component
             store.addComponent(ref, RadiationComponent.getComponentType(), radComponent);
-            player.sendMessage(Message.raw("Added new Radiation Component"));
+            playerRef.sendMessage(Message.raw("Added new Radiation Component"));
         }
 
         // Set radiation
@@ -60,7 +59,7 @@ public class RadiationSetCommand extends AbstractPlayerCommand {
         float amountToAdd = amount - oldAmount;
         ChangeRadiationEvent.dispatch(ref, amountToAdd);
 
-        player.sendMessage(Message.raw("New total radiations: %.2f".formatted(radComponent.getTotalRadiations()))
+        playerRef.sendMessage(Message.raw("New total radiations: %.2f".formatted(radComponent.getTotalRadiations()))
                 .color(Color.GREEN)
                 .bold(true));
     }

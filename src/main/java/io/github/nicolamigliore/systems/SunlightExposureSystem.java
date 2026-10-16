@@ -7,14 +7,12 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
 import com.hypixel.hytale.math.util.ChunkUtil;
-import com.hypixel.hytale.math.vector.Vector3i;
+import org.joml.Vector3dc;
 import com.hypixel.hytale.protocol.BlockMaterial;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.World;
-import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
-import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import io.github.nicolamigliore.components.RadiationComponent;
@@ -49,7 +47,7 @@ public class SunlightExposureSystem extends EntityTickingSystem<EntityStore> {
         World world = player.getWorld();
         TransformComponent transform = store.getComponent(playerRef, TransformComponent.getComponentType());
 
-        boolean exposedToSunlight = isExposedToSun(world, transform.getPosition().toVector3i());
+        boolean exposedToSunlight = isExposedToSun(world, transform.getPosition());
 
         // Change radiation exposure
         boolean oldExposure = radiationComponent.isExposedToRadiation();
@@ -59,11 +57,11 @@ public class SunlightExposureSystem extends EntityTickingSystem<EntityStore> {
 
     }
 
-    private boolean isExposedToSun(World world, Vector3i pos) {
+    private boolean isExposedToSun(World world, Vector3dc pos) {
 
-        int x = pos.x;
-        int y = pos.y + 1; // start above head
-        int z = pos.z;
+        int x = (int) Math.floor(pos.x());
+        int y = (int) Math.floor(pos.y()) + 1; // start above head
+        int z = (int) Math.floor(pos.z());
 
         // If below minimum build height → not exposed
         if (y < ChunkUtil.MIN_Y) return false;
@@ -72,16 +70,15 @@ public class SunlightExposureSystem extends EntityTickingSystem<EntityStore> {
         int localZ = z & 31;
 
         long chunkIndex = ChunkUtil.indexChunkFromBlock(x, z);
-        WorldChunk chunk = world.getChunkIfLoaded(chunkIndex);
-        if (chunk == null) return false;
-
-        BlockChunk blockChunk = chunk.getBlockChunk();
-        if (blockChunk == null) return false;
+        var chunkStore = world.getChunkStore();
+        if (!chunkStore.hasLoadedSections(chunkIndex)) return false;
 
         // Walk upward until world max height
         for (int checkY = y; checkY < ChunkUtil.HEIGHT; checkY++) {
 
-            BlockSection section = blockChunk.getSectionAtBlockY(checkY);
+            var sectionRef = chunkStore.getChunkSectionReferenceAtBlock(x, checkY, z);
+            if (sectionRef == null || !sectionRef.isValid()) continue;
+            BlockSection section = chunkStore.getStore().getComponent(sectionRef, BlockSection.getComponentType());
             if (section == null) continue;
 
             int localY = checkY & 31;
@@ -89,7 +86,7 @@ public class SunlightExposureSystem extends EntityTickingSystem<EntityStore> {
             int blockId = section.get(localX, localY, localZ);
 
             BlockType block = BlockType.getAssetMap().getAsset(blockId);
-            boolean isSolid = block.getMaterial() == BlockMaterial.Solid;
+            boolean isSolid = block != null && block.getMaterial() == BlockMaterial.Solid;
             if (isSolid) return false;
         }
 
