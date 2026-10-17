@@ -6,107 +6,64 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import io.github.nicolamigliore.radiation.Exposure;
 import io.github.nicolamigliore.radiation.RadLevelTable;
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 
 public class RadiationComponent implements Component<EntityStore> {
+    private static ComponentType<EntityStore, RadiationComponent> type;
 
-    private static ComponentType<EntityStore, RadiationComponent> TYPE;
-
-    public static void setComponentType(ComponentType<EntityStore, RadiationComponent> type){
-        TYPE = type;
-    }
-
-    public static ComponentType<EntityStore, RadiationComponent> getComponentType(){
-        return TYPE;
-    }
-
+    // Keep the original dose key and codec type so existing player saves migrate.
     public static final BuilderCodec<RadiationComponent> CODEC = BuilderCodec
             .builder(RadiationComponent.class, RadiationComponent::new)
-            .append(
-                    new KeyedCodec<>("TotalRadiations", Codec.FLOAT),
-                    (component, value) -> component.totalRadiations = value,
-                    component -> component.totalRadiations
-            )
-            .add()
-            .append(
-                    new KeyedCodec<>("ExposedToRadiation", Codec.BOOLEAN),
-                    (component, value) -> component.exposedToRadiation = value,
-                    component -> component.exposedToRadiation
-            )
+            .append(new KeyedCodec<>("TotalRadiations", Codec.FLOAT),
+                    RadiationComponent::setTotalRadiations, RadiationComponent::getTotalRadiations)
             .add()
             .build();
 
-    private float totalRadiations = 0f;
-    private boolean exposedToRadiation = false;
+    private float totalRadiations;
+    private Exposure exposure = Exposure.UNKNOWN;
+    private float exposureCheckRemaining;
+    private int lastReportedStage = -1;
 
     public RadiationComponent() {}
 
-    public RadiationComponent(float totalRadiations){
-        this.totalRadiations = Math.max(0f, totalRadiations);
+    public RadiationComponent(float dose) {
+        setTotalRadiations(dose);
     }
 
-    public RadiationComponent(float totalRadiations, boolean exposedToRadiation){
-        this.totalRadiations = Math.max(0f, totalRadiations);
-        this.exposedToRadiation = exposedToRadiation;
+    public static void setComponentType(ComponentType<EntityStore, RadiationComponent> componentType) {
+        type = componentType;
     }
 
-    public float getTotalRadiations() {
-        return totalRadiations;
+    public static ComponentType<EntityStore, RadiationComponent> getComponentType() {
+        return type;
     }
 
-    public void setTotalRadiations(float totalRadiations){
-        this.totalRadiations = Math.max(0f, totalRadiations);
+    public float getTotalRadiations() { return totalRadiations; }
+    public void setTotalRadiations(float dose) { totalRadiations = RadLevelTable.clampDose(dose); }
+    public int getRadLevel() { return RadLevelTable.getRadLevelForRads(totalRadiations); }
+    public float getProgress() { return RadLevelTable.getProgressToNextRadLevel(totalRadiations); }
+    public float getRadiationsToNextLevel() { return RadLevelTable.getRadsToNextRadLevel(totalRadiations); }
+    public Exposure getExposure() { return exposure; }
+    public void setExposure(Exposure value) { exposure = value; }
+    public int getLastReportedStage() { return lastReportedStage; }
+    public void setLastReportedStage(int stage) { lastReportedStage = stage; }
+
+    public boolean shouldCheckExposure(float dt) {
+        exposureCheckRemaining -= dt;
+        if (exposureCheckRemaining > 0) return false;
+        exposureCheckRemaining = 0.5f;
+        return true;
     }
 
-    public boolean isExposedToRadiation() {
-        return exposedToRadiation;
-    }
-
-    public void setExposedToRadiation(boolean exposedToRadiation) {
-        this.exposedToRadiation = exposedToRadiation;
-    }
-
-    public int getRadLevel() {
-        return RadLevelTable.getRadLevelForRads((long) totalRadiations);
-    }
-
-    public long getCurrentRadLevelRadiations() {
-        return RadLevelTable.getRadsInCurrentRadLevel((long) totalRadiations);
-    }
-
-    public long getRadiationsToNextLevel() {
-        return RadLevelTable.getRadsToNextRadLevel((long) totalRadiations);
-    }
-
-    public float getProgress() {
-        return RadLevelTable.getProgressToNextRadLevel((long) totalRadiations);
-    }
-
-    public boolean isMaxRadLevel(){
-        return getRadLevel() >= RadLevelTable.MAX_RAD_LEVEL;
-    }
-
-    public boolean addRadiations(float amount){
-        int oldRadLevel = getRadLevel();
-        totalRadiations = Math.max(0f, totalRadiations + amount);
-        int newRadLevel = getRadLevel();
-        return newRadLevel > oldRadLevel;
-    }
-
-    @NullableDecl
-    @Override
-    public RadiationComponent clone(){
-        return new RadiationComponent(this.totalRadiations, this.exposedToRadiation);
+    public void invalidateExposure() {
+        exposure = Exposure.UNKNOWN;
+        exposureCheckRemaining = 0;
     }
 
     @Override
-    public String toString(){
-        return "RadiationComponent{" +
-                "radLevel=" + getRadLevel() +
-                ", totalRads=" + totalRadiations +
-                ", toNextRadLevel=" + getRadiationsToNextLevel() +
-                ", exposed=" + exposedToRadiation +
-                "}";
+    public RadiationComponent clone() {
+        // Exposure is local to the current world and is always resampled on load/transfer.
+        return new RadiationComponent(totalRadiations);
     }
 }

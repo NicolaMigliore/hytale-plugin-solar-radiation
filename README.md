@@ -3,7 +3,11 @@
 A server plugin that makes sunlight hazardous and encourages shelter, nighttime
 exploration, and preparation. Based on the original
 [Solar Radiation Minecraft datapack](https://modrinth.com/datapack/solar-radiation).
-The current implementation is an early prototype.
+The current implementation supports the core player radiation loop.
+
+The proposed first-release [radiation gameplay rules](docs/radiation-gameplay-rules.md)
+define the target mechanics and their Minecraft reference. Implementation is tracked
+separately; these rules are not all present in the prototype yet.
 
 ## Pinned development baseline
 
@@ -30,8 +34,9 @@ java -version
 
 The plugin is written to `build/libs/solar-radiation.jar`. Building downloads the
 pinned server API from Hytale's Maven repository; it does **not** require a local
-game installation or `Assets.zip`. There are currently no automated tests, so
-`build` verifies compilation and packaging.
+game installation or `Assets.zip`. `build` runs the automated dose, shelter,
+persistence-codec, and native world-clock tests as well as compilation and
+packaging. The HTML report is in `build/reports/tests/test/index.html`.
 
 On Linux/macOS, use `./gradlew` in place of `.\gradlew.bat`. In IntelliJ, import
 the Gradle project, select the wrapper, and set the Gradle JVM to JDK 25.
@@ -91,11 +96,71 @@ plugin errors. This verifies server startup and registration; client connection
 and radiation gameplay still require an in-game check. `clean` removes this
 startup-check world; it leaves `devserver` intact.
 
-Verified on Windows with JDK 25.0.2 on 16 October 2026: clean build, packaged
-manifest constraint, plugin enablement, server ready on localhost, and clean
-shutdown. The existing `devserver` world was not used. The prototype still emits
-a deprecation note for its exposure system; the base game also emits asset
-warnings during startup.
+Verified on Windows with JDK 25.0.2 on 17 October 2026: clean build and 22 tests,
+plugin and effect-pack loading, server ready on localhost, and clean shutdown.
+Existing development saves were not used. The base game emits asset warnings
+during startup. Player-facing effects and damage timing still need an in-game
+check with a connected client.
+
+## Radiation gameplay and testing
+
+The player loop currently includes dose clamped to 0 through 180, stages 0 through
+6, per-world day/night detection, three full opaque blocks of overhead shelter,
+and one dose per second of exposure/recovery. Unknown terrain pauses dose changes.
+Creative mode pauses dose and suppresses symptoms; switch to Adventure mode to
+test normal gameplay. Death clears dose. Saved dose survives relog/restart and
+world transfers, including older saves; exposure is recomputed after loading.
+
+Stages 1 through 4 apply the stock Slow mechanics. Stage 5 adds Poison T1; stage
+6 replaces it with Poison T2. Dedicated effect IDs isolate radiation cleanup from
+other slow/poison effects. Effects are maintained without resetting damage timers.
+Stock Slow has a 50% speed multiplier and frost-themed visuals.
+
+After authenticating and joining the server, use `/op self` if you need operator
+permissions. Dose-changing debug commands require `solarradiation.admin` (or OP).
+
+```text
+/radiation stats
+/radiation set --amount=20
+/radiation set --amount=140
+/radiation set --amount=180
+/radiation set --amount=0
+/radiation add --amount=10.5
+```
+
+Use 20 dose to check Slow and 140 for low-tier poison. To check the critical tier,
+set 180 while exposed in daytime; in shelter/night it immediately recovers below
+180. Stats show dose, stage, exposure reason, and progress as a percentage.
+Amounts are clamped to 0 through 180; nonfinite inputs are rejected. `set` requires
+`--amount`; `add` defaults to 50 when omitted.
+
+Check an open column in daytime (dose rises), then a roof with one/two full stone
+blocks (still rises) and three layers (recovers). The layers may be separated.
+Glass, leaves, and partial blocks do not shield by default. Changing the world
+to night should allow recovery without advancing dose for the skipped hours.
+After `/radiation set --amount=0`, radiation-owned effects should clear on the
+next update. Relog/restart at a nonzero dose to check persistence.
+
+The server creates `mods/io.github.nicolamigliore_SolarRadiationPlugin/Radiation.json`
+inside the selected server directory. Edit it while the server is stopped:
+
+```json
+{
+  "Enabled": true,
+  "DisabledWorlds": [],
+  "ShieldingBlocks": [],
+  "NonShieldingBlocks": []
+}
+```
+
+`DisabledWorlds` contains exact world names; disabled worlds freeze dose and
+suppress symptoms. Exclude instances/worlds without a solar cycle here as needed.
+`ShieldingBlocks` and `NonShieldingBlocks` accept exact block asset IDs; exclusions
+win if an ID appears in both lists. These provide explicit material overrides;
+tag-based shielding and configurable rates/thresholds are future work.
+
+Hazmat equipment, treatment items, mob contamination, and the HUD are not yet
+implemented. Stage/exposure messages and debug stats provide feedback for now.
 
 ## Troubleshooting and upgrades
 

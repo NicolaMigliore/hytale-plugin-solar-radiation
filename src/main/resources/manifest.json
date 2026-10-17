@@ -12,7 +12,7 @@
     ],
     "Website": "https://github.com/NicolaMigliore/hp-plugin-solar-radiation",
     "DisabledByDefault": false,
-    "IncludesAssetPack": false,
+    "IncludesAssetPack": true,
     "Dependencies": {},
     "OptionalDependencies": {},
     "ServerVersion": "*",

@@ -21,6 +21,13 @@ val hytaleServer by configurations.creating
 dependencies {
     compileOnly("com.hypixel.hytale:Server:$hytaleVersion")
     hytaleServer("com.hypixel.hytale:Server:$hytaleVersion")
+    testImplementation("com.hypixel.hytale:Server:$hytaleVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.10.1")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 java {

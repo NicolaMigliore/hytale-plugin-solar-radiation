@@ -9,38 +9,23 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import io.github.nicolamigliore.components.RadiationComponent;
-import org.checkerframework.checker.nullness.compatqual.NonNullDecl;
+import javax.annotation.Nonnull;
 
 public class RadiationStatsCommand extends AbstractPlayerCommand {
-    public RadiationStatsCommand(){
-        super("stats", "Show your radiation stats");
-    }
+    public RadiationStatsCommand() { super("stats", "Show dose, stage, and solar exposure"); }
 
     @Override
-    protected void execute(
-            @NonNullDecl CommandContext commandContext,
-            @NonNullDecl Store<EntityStore> store,
-            @NonNullDecl Ref<EntityStore> ref,
-            @NonNullDecl PlayerRef playerRef,
-            @NonNullDecl World world
-    ) {
-        RadiationComponent radiationComponent = store.getComponent(ref, RadiationComponent.getComponentType());
-        if(radiationComponent == null){
-            playerRef.sendMessage(Message.raw("No Radiation component found"));
+    protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store,
+                           @Nonnull Ref<EntityStore> ref, @Nonnull PlayerRef recipient, @Nonnull World world) {
+        var radiation = store.getComponent(ref, RadiationComponent.getComponentType());
+        if (radiation == null) {
+            recipient.sendMessage(Message.raw("Radiation data is not ready yet."));
             return;
         }
-
-        int radLevel = radiationComponent.getRadLevel();
-        float totalRadiations = radiationComponent.getTotalRadiations();
-        long toNextRadLevel = radiationComponent.getRadiationsToNextLevel();
-        float progress = radiationComponent.getProgress();
-        boolean isExposed = radiationComponent.isExposedToRadiation();
-
-        playerRef.sendMessage(Message.raw("=== Radiation Stats ==="));
-        playerRef.sendMessage(Message.raw("Radiation Level: %d".formatted(radLevel)));
-        playerRef.sendMessage(Message.raw("Progress to next Radiation Level: %.2f".formatted(progress)));
-        playerRef.sendMessage(Message.raw("Total Radiations: %.2f".formatted(totalRadiations)));
-        playerRef.sendMessage(Message.raw("Currently Exposed: %b".formatted(isExposed)));
-
+        recipient.sendMessage(Message.raw("Radiation dose: %.2f / 180 | stage %d".formatted(
+                radiation.getTotalRadiations(), radiation.getRadLevel())));
+        recipient.sendMessage(Message.raw("Solar exposure: " + radiation.getExposure()));
+        recipient.sendMessage(Message.raw("Next stage: %.2f dose remaining | progress %.1f%%".formatted(
+                radiation.getRadiationsToNextLevel(), radiation.getProgress() * 100)));
     }
 }
