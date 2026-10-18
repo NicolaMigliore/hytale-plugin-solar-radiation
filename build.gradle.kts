@@ -28,6 +28,7 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    systemProperty("java.util.logging.manager", "com.hypixel.hytale.logger.backend.HytaleLogManager")
 }
 
 java {

@@ -1,7 +1,7 @@
 package io.github.nicolamigliore.radiation;
 
 public enum Exposure {
-    UNKNOWN(0), EXPOSED(1), SHELTERED(-1), NIGHT(-1), DISABLED(0), EXEMPT(0), DEAD(0);
+    UNKNOWN(0), EXPOSED(1), SHELTERED(-1), NIGHT(-1), RECOVERING(-1), DISABLED(0), EXEMPT(0), DEAD(0);
 
     private final int doseDirection;
 

@@ -4,9 +4,9 @@ import com.hypixel.hytale.component.*;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.RefChangeSystem;
 import com.hypixel.hytale.server.core.modules.entity.damage.DeathComponent;
-import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import io.github.nicolamigliore.components.RadiationComponent;
+import io.github.nicolamigliore.components.RadiationRuntimeComponent;
 import javax.annotation.Nonnull;
 
 /** Reset even when death/respawn happens between two radiation ticks. */
@@ -15,7 +15,7 @@ public class RadiationDeathSystem extends RefChangeSystem<EntityStore, DeathComp
     public ComponentType<EntityStore, DeathComponent> componentType() { return DeathComponent.getComponentType(); }
     @Override
     public Query<EntityStore> getQuery() {
-        return Query.and(PlayerRef.getComponentType(), RadiationComponent.getComponentType());
+        return RadiationComponent.getComponentType();
     }
     @Override
     public void onComponentAdded(@Nonnull Ref<EntityStore> ref, @Nonnull DeathComponent death,
@@ -36,7 +36,8 @@ public class RadiationDeathSystem extends RefChangeSystem<EntityStore, DeathComp
         var radiation = buffer.getComponent(ref, RadiationComponent.getComponentType());
         if (radiation != null) {
             radiation.setTotalRadiations(0);
-            radiation.invalidateExposure();
+            var runtime = buffer.getComponent(ref, RadiationRuntimeComponent.getComponentType());
+            if (runtime != null) runtime.invalidateExposure();
         }
     }
 }

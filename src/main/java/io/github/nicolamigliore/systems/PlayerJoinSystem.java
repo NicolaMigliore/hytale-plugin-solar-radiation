@@ -15,8 +15,6 @@ public class PlayerJoinSystem extends RefSystem<EntityStore> {
         var radiation = store.getComponent(ref, RadiationComponent.getComponentType());
         if (radiation == null) {
             buffer.addComponent(ref, RadiationComponent.getComponentType(), new RadiationComponent());
-        } else {
-            radiation.invalidateExposure();
         }
     }
 

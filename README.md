@@ -96,7 +96,7 @@ plugin errors. This verifies server startup and registration; client connection
 and radiation gameplay still require an in-game check. `clean` removes this
 startup-check world; it leaves `devserver` intact.
 
-Verified on Windows with JDK 25.0.2 on 17 October 2026: clean build and 22 tests,
+Verified on Windows with JDK 25.0.2 on 17 October 2026: clean build and 35 tests,
 plugin and effect-pack loading, server ready on localhost, and clean shutdown.
 Existing development saves were not used. The base game emits asset warnings
 during startup. Player-facing effects and damage timing still need an in-game
@@ -159,8 +159,45 @@ suppress symptoms. Exclude instances/worlds without a solar cycle here as needed
 win if an ID appears in both lists. These provide explicit material overrides;
 tag-based shielding and configurable rates/thresholds are future work.
 
-Hazmat equipment, treatment items, mob contamination, and the HUD are not yet
-implemented. Stage/exposure messages and debug stats provide feedback for now.
+## Radiation ECS foundation
+
+`RadiationComponent` contains persistent dose only, using the original
+`SolarRadiation_EntityData` registration and `TotalRadiations` save key. Stages and
+progress are derived from dose. `RadiationRuntimeComponent` contains exposure,
+the exposure-check timer, and notification state. It is registered without a
+serialization codec and excluded from serializable clones. Loading or transferring
+an entity creates fresh runtime state without changing dose.
+
+Players receive dose data automatically. Mobs opt in only when another system
+or a debug command attaches `RadiationComponent`; ordinary mobs are unaffected.
+The shared loop processes any entity carrying dose data without requiring player
+components. Opted-in mobs recover one dose per second and receive low-tier poison
+at any positive dose. They never acquire solar dose, player Slow, stronger poison,
+or player chat messages. Death clears dose for both players and mobs.
+
+To test a mob, look directly at it within 10 blocks and run:
+
+```text
+/radiation set --target --amount=20
+/radiation stats --target
+/radiation set --target --amount=0
+```
+
+Expect `RECOVERING`, roughly one dose lost per second even in sunlight, low-tier
+poison without Slow, and radiation-owned poison removed at zero. The same flag
+works with `add` and can target another player. Dose changes still require
+`solarradiation.admin` or OP. Automatic spread and susceptibility selection remain
+part of the contamination issue.
+
+When adding future radiation sources, attach the persistent component on the
+entity's world thread using its store or command buffer. Lifecycle systems create
+runtime state for new/load/late-added dose components and remove runtime plus
+radiation-owned effects when the dose component is removed. Updating/replacing
+dose preserves runtime state. Use zero dose to decontaminate an entity while
+retaining its radiation capability.
+
+Hazmat equipment, treatment items, automatic mob contamination, and the HUD are
+not yet implemented. Stage/exposure messages and debug stats provide feedback.
 
 ## Troubleshooting and upgrades
 

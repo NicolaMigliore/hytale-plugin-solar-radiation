@@ -1,6 +1,7 @@
 package io.github.nicolamigliore.radiation;
 
 import io.github.nicolamigliore.components.RadiationComponent;
+import io.github.nicolamigliore.components.RadiationRuntimeComponent;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
 import org.bson.BsonDocument;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,6 @@ class RadiationRulesTest {
         var legacy = BsonDocument.parse("{\"TotalRadiations\": 300.0, \"ExposedToRadiation\": true}");
         var radiation = RadiationComponent.CODEC.decode(legacy);
         assertEquals(180f, radiation.getTotalRadiations());
-        assertEquals(Exposure.UNKNOWN, radiation.getExposure());
         var encoded = RadiationComponent.CODEC.encode(radiation).asDocument();
         assertFalse(encoded.containsKey("ExposedToRadiation"));
         assertEquals(180f, RadiationComponent.CODEC.decode(encoded).getTotalRadiations());
@@ -53,13 +53,21 @@ class RadiationRulesTest {
     }
 
     @Test
-    void cloningDoesNotCarryWorldExposure() {
+    void doseAndRuntimeCloneIndependently() {
         var original = new RadiationComponent(89.5f);
-        original.setExposure(Exposure.EXPOSED);
+        var runtime = new RadiationRuntimeComponent();
+        runtime.setExposure(Exposure.EXPOSED);
+        runtime.setLastReportedStage(3);
+        assertTrue(runtime.shouldCheckExposure(0));
         var transferred = original.clone();
         assertEquals(89.5f, transferred.getTotalRadiations());
-        assertEquals(Exposure.UNKNOWN, transferred.getExposure());
-        assertTrue(transferred.shouldCheckExposure(0));
+        transferred.setTotalRadiations(5);
+        assertEquals(89.5f, original.getTotalRadiations());
+        var transferredRuntime = runtime.clone();
+        assertEquals(Exposure.UNKNOWN, transferredRuntime.getExposure());
+        assertEquals(-1, transferredRuntime.getLastReportedStage());
+        assertTrue(transferredRuntime.shouldCheckExposure(0));
+        assertNull(runtime.cloneSerializable());
     }
 
     @Test

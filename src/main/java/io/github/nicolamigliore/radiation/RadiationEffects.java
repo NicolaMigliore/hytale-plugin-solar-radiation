@@ -23,15 +23,15 @@ public final class RadiationEffects {
     }
 
     public static void update(Ref<EntityStore> ref, EffectControllerComponent controller,
-                              int stage, ComponentAccessor<EntityStore> accessor) {
-        set(ref, controller, SLOW, stage >= 1, accessor);
+                              RadiationSymptoms symptoms, ComponentAccessor<EntityStore> accessor) {
+        set(ref, controller, SLOW, symptoms.slowed(), accessor);
         // Remove the outgoing tier before applying its replacement.
-        if (stage == 6) {
+        if (symptoms.poison() == RadiationSymptoms.Poison.HIGH) {
             set(ref, controller, LOW, false, accessor);
             set(ref, controller, HIGH, true, accessor);
         } else {
             set(ref, controller, HIGH, false, accessor);
-            set(ref, controller, LOW, stage == 5, accessor);
+            set(ref, controller, LOW, symptoms.poison() == RadiationSymptoms.Poison.LOW, accessor);
         }
     }
 

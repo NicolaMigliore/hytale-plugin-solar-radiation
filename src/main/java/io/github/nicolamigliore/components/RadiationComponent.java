@@ -6,9 +6,9 @@ import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Component;
 import com.hypixel.hytale.component.ComponentType;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import io.github.nicolamigliore.radiation.Exposure;
 import io.github.nicolamigliore.radiation.RadLevelTable;
 
+/** Persistent entity dose. Exposure and presentation belong to RadiationRuntimeComponent. */
 public class RadiationComponent implements Component<EntityStore> {
     private static ComponentType<EntityStore, RadiationComponent> type;
 
@@ -21,9 +21,6 @@ public class RadiationComponent implements Component<EntityStore> {
             .build();
 
     private float totalRadiations;
-    private Exposure exposure = Exposure.UNKNOWN;
-    private float exposureCheckRemaining;
-    private int lastReportedStage = -1;
 
     public RadiationComponent() {}
 
@@ -44,26 +41,8 @@ public class RadiationComponent implements Component<EntityStore> {
     public int getRadLevel() { return RadLevelTable.getRadLevelForRads(totalRadiations); }
     public float getProgress() { return RadLevelTable.getProgressToNextRadLevel(totalRadiations); }
     public float getRadiationsToNextLevel() { return RadLevelTable.getRadsToNextRadLevel(totalRadiations); }
-    public Exposure getExposure() { return exposure; }
-    public void setExposure(Exposure value) { exposure = value; }
-    public int getLastReportedStage() { return lastReportedStage; }
-    public void setLastReportedStage(int stage) { lastReportedStage = stage; }
-
-    public boolean shouldCheckExposure(float dt) {
-        exposureCheckRemaining -= dt;
-        if (exposureCheckRemaining > 0) return false;
-        exposureCheckRemaining = 0.5f;
-        return true;
-    }
-
-    public void invalidateExposure() {
-        exposure = Exposure.UNKNOWN;
-        exposureCheckRemaining = 0;
-    }
-
     @Override
     public RadiationComponent clone() {
-        // Exposure is local to the current world and is always resampled on load/transfer.
         return new RadiationComponent(totalRadiations);
     }
 }

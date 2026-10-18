@@ -5,6 +5,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
 import com.hypixel.hytale.server.core.command.system.arguments.system.OptionalArg;
+import com.hypixel.hytale.server.core.command.system.arguments.system.FlagArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractPlayerCommand;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -16,11 +17,13 @@ import javax.annotation.Nonnull;
 abstract class RadiationDoseCommand extends AbstractPlayerCommand {
     private final boolean set;
     private final OptionalArg<Float> amount;
+    private final FlagArg target;
 
     protected RadiationDoseCommand(String name, boolean set) {
         super(name, set ? "Set radiation dose (0 to 180)" : "Add radiation dose");
         this.set = set;
         amount = withOptionalArg("amount", "Dose amount", ArgTypes.FLOAT);
+        target = withFlagArg("target", "Apply to the player or mob you are looking at");
         requirePermission("solarradiation.admin");
     }
 
@@ -37,10 +40,12 @@ abstract class RadiationDoseCommand extends AbstractPlayerCommand {
             recipient.sendMessage(Message.raw("Radiation amount must be a finite number."));
             return;
         }
-        var radiation = store.getComponent(ref, RadiationComponent.getComponentType());
+        var entity = RadiationTarget.resolve(ref, Boolean.TRUE.equals(target.get(context)), store, recipient);
+        if (entity == null) return;
+        var radiation = store.getComponent(entity, RadiationComponent.getComponentType());
         if (radiation == null) {
             radiation = new RadiationComponent();
-            store.addComponent(ref, RadiationComponent.getComponentType(), radiation);
+            store.addComponent(entity, RadiationComponent.getComponentType(), radiation);
         }
         radiation.setTotalRadiations(set ? value : radiation.getTotalRadiations() + value);
         recipient.sendMessage(Message.raw("Radiation dose: %.2f / 180 | stage %d".formatted(
