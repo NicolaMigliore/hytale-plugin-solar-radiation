@@ -207,6 +207,18 @@ Ordinary mobs do not acquire dose directly from sunlight.
   consuming unstable solution adds **30 dose**, capped at 180, as in the source.
   Actual ingredients, workstations, and recipes belong to the content issues.
 
+Implemented: `SolarRadiation_Treatment` uses native potion consumption (1.5 seconds)
+and `SolarRadiation_Treatment_Splash` uses native projectile impacts, including terrain.
+Both clear dose fully and remove only radiation-owned symptoms. The splash uses
+entity positions for range and a straight voxel path from just outside the contact
+surface to the entity's body center, blocked by any solid-material block
+(including glass/partial blocks) or missing terrain. It treats only living players
+and mobs already carrying radiation data; automatic susceptibility/spread is deferred.
+`TreatmentRadius` defaults to 3 and accepts finite values greater than 0 through 16.
+Initial recipes are available at the Alchemist's Workbench; see the README for
+ingredients and in-game checks. Existing native potion artwork is reused. The
+optional unstable solution is deferred.
+
 ## Persistence and player feedback
 
 - Save dose through logout, server restart, and world transfer. Do not simulate

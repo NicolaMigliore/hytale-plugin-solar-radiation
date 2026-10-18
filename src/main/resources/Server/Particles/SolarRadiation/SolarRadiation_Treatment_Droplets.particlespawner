@@ -1,0 +1,119 @@
+{
+    "Parent":  "Watering_Can_Hit",
+    "SpawnBurst":  true,
+    "MaxConcurrentParticles":  36,
+    "TotalParticles":  {
+                           "Min":  36,
+                           "Max":  36
+                       },
+    "ParticleLifeSpan":  {
+                             "Min":  0.5,
+                             "Max":  0.7
+                         },
+    "InitialVelocity":  {
+                            "Speed":  {
+                                          "Min":  3.5,
+                                          "Max":  6
+                                      },
+                            "Yaw":  {
+                                        "Min":  0,
+                                        "Max":  360
+                                    },
+                            "Pitch":  {
+                                          "Min":  15,
+                                          "Max":  50
+                                      }
+                        },
+    "Particle":  {
+                     "Texture":  "Particles/Textures/Rnd/Water_Splash.png",
+                     "FrameSize":  {
+                                       "Width":  128,
+                                       "Height":  128
+                                   },
+                     "ScaleRatioConstraint":  "OneToOne",
+                     "Animation":  {
+                                       "0":  {
+                                                 "FrameIndex":  {
+                                                                    "Min":  0,
+                                                                    "Max":  0
+                                                                },
+                                                 "Scale":  {
+                                                               "X":  {
+                                                                         "Min":  1,
+                                                                         "Max":  1
+                                                                     }
+                                                           },
+                                                 "Rotation":  {
+                                                                  "X":  {
+                                                                            "Min":  0,
+                                                                            "Max":  0
+                                                                        },
+                                                                  "Y":  {
+                                                                            "Min":  0,
+                                                                            "Max":  0
+                                                                        },
+                                                                  "Z":  {
+                                                                            "Min":  0,
+                                                                            "Max":  0
+                                                                        }
+                                                              },
+                                                 "Opacity":  1
+                                             },
+                                       "20":  {
+                                                  "Opacity":  0.88,
+                                                  "FrameIndex":  {
+                                                                     "Min":  1,
+                                                                     "Max":  1
+                                                                 }
+                                              },
+                                       "50":  {
+                                                  "Opacity":  0.88,
+                                                  "FrameIndex":  {
+                                                                     "Min":  2,
+                                                                     "Max":  2
+                                                                 }
+                                              },
+                                       "100":  {
+                                                   "Opacity":  0.13,
+                                                   "FrameIndex":  {
+                                                                      "Min":  3,
+                                                                      "Max":  3
+                                                                  },
+                                                   "Scale":  {
+                                                                 "X":  {
+                                                                           "Min":  1.5,
+                                                                           "Max":  1.5
+                                                                       }
+                                                             }
+                                               }
+                                   },
+                     "InitialAnimationFrame":  {
+                                                   "Rotation":  {
+                                                                    "X":  {
+                                                                              "Min":  180,
+                                                                              "Max":  360
+                                                                          },
+                                                                    "Y":  {
+                                                                              "Min":  0,
+                                                                              "Max":  0
+                                                                          },
+                                                                    "Z":  {
+                                                                              "Min":  0,
+                                                                              "Max":  360
+                                                                          }
+                                                                },
+                                                   "Scale":  {
+                                                                 "X":  {
+                                                                           "Min":  0.2,
+                                                                           "Max":  0.2
+                                                                       }
+                                                             },
+                                                   "Opacity":  0.8,
+                                                   "FrameIndex":  {
+                                                                      "Min":  0,
+                                                                      "Max":  0
+                                                                  },
+                                                   "Color":  "#2F6035"
+                                               }
+                 }
+}

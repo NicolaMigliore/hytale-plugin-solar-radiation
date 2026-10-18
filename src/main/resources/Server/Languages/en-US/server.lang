@@ -1,0 +1,4 @@
+items.SolarRadiation_Treatment.name = Decontamination Potion
+items.SolarRadiation_Treatment.description = Drink to clear radiation and its symptoms. Does not restore health or grant immunity.
+items.SolarRadiation_Treatment_Splash.name = Decontamination Flask
+items.SolarRadiation_Treatment_Splash.description = Throw to clear radiation from nearby players and contaminated creatures. Solid walls block treatment.

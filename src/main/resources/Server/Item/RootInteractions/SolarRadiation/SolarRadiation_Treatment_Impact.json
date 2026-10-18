@@ -1,0 +1,15 @@
+{
+  "Cooldown": { "Cooldown": 0 },
+  "Rules": { "Interrupting": ["ProjectileSpawn"] },
+  "Interactions": [
+    {
+      "Type": "SolarRadiation_Decontaminate",
+      "Splash": true,
+      "Effects": {
+        "WorldSoundEventId": "SFX_Glass_Break",
+        "Particles": [{ "SystemId": "Item_Break_GlassPotion" }]
+      }
+    },
+    { "Type": "RemoveEntity", "Entity": "User" }
+  ]
+}

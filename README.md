@@ -96,7 +96,7 @@ plugin errors. This verifies server startup and registration; client connection
 and radiation gameplay still require an in-game check. `clean` removes this
 startup-check world; it leaves `devserver` intact.
 
-Verified on Windows with JDK 25.0.2 on 18 October 2026: build and 101 tests,
+Verified on Windows with JDK 25.0.2 on 18 October 2026: build and 121 tests,
 including native HUD-manager/packet tests, effect escalation, recovery, and
 unrelated-effect preservation. An isolated startup check verified
 plugin and effect-pack loading, server ready on localhost, and clean shutdown.
@@ -219,6 +219,7 @@ inside the selected server directory. Edit it while the server is stopped:
   "DisabledWorlds": [],
   "ExposureDosePerSecond": 1.0,
   "RecoveryDosePerSecond": 1.0,
+  "TreatmentRadius": 3.0,
   "ShelterDepth": 3,
   "ExposureCheckIntervalSeconds": 0.5,
   "ShieldingBlocks": [],
@@ -316,8 +317,56 @@ radiation-owned effects when the dose component is removed. Updating/replacing
 dose preserves runtime state. Use zero dose to decontaminate an entity while
 retaining its radiation capability.
 
-Hazmat equipment, treatment items, and automatic mob contamination are not yet
+Hazmat equipment and automatic mob contamination are not yet
 implemented. The radiation HUD, early warning, and debug stats provide feedback.
+
+## Decontamination consumables
+
+Craft both items at an **Alchemist's Workbench**. Initial recipes use existing
+ingredients and artwork; balancing and dedicated item artwork can follow playtesting.
+
+| Item | Recipe (one item) | Use in Adventure mode |
+| --- | --- | --- |
+| Decontamination Potion (`SolarRadiation_Treatment`) | 1 empty potion, 5 fibre, 2 life essence, 1 venom sac; Potions category | Hold secondary use for 1.5 seconds |
+| Decontamination Flask (`SolarRadiation_Treatment_Splash`) | 1 decontamination potion, 1 boom powder, 2 fibre; Bombs category | Primary use to throw |
+
+A completed use consumes one item. The potion clears the drinker's dose and
+radiation-owned symptoms immediately. The flask breaks on an entity or terrain,
+treating living players and opted-in mobs within **3 world units** of impact.
+Distance uses entity position, including the radius boundary. Visibility is checked
+from just outside the impact surface to the center of the entity's bounding box,
+so feet resting slightly inside the ground do not block treatment. Solid-material blocks
+(including glass and partial solid blocks) block the straight path; missing terrain
+also blocks treatment. The splash cannot damage entities or terrain. The
+flask produces a brief outward burst of water droplets on impact, scaled with the
+configured treatment radius. The particles indicate the splash area; they do not
+leave a persistent treatment zone. An airborne
+flask disappears after 10 seconds if it hits nothing.
+
+Treatment preserves the dose component, clears only radiation-owned effects, and
+does not heal, grant immunity, or affect equipment. Further exposure can add dose
+on the next update. Ordinary untracked mobs remain untracked. Set `TreatmentRadius`
+in `Radiation.json` to change splash range (default 3; finite, greater than 0, at
+most 16). Restart after changing configuration or rebuilding.
+
+In-game checks after restarting:
+
+1. Obtain both items through the workbench or `/give SolarRadiation_Treatment`
+   and `/give SolarRadiation_Treatment_Splash` (operator commands). Switch to Adventure.
+2. At night or in shelter, set dose to 140. Finish drinking: stats should show zero,
+   the HUD should empty, and radiation Slow/poison should stop. Health should not rise.
+   Cancel a drink early: neither dose nor item count should change.
+3. Give a mob dose with `/radiation set --target --amount=140`. Throw a flask beside
+   it and another irradiated player. Check both clear, including on direct entity hits.
+   Check a throw at the ground and at a wall, with one target on each side of the wall.
+4. Check targets beyond the radius stay contaminated, one item is consumed per throw
+   (also from a stack of one), unrelated poison/slow survives, and outdoor exposure
+   resumes after treatment. Verify both recipes consume their listed ingredients.
+
+Automated tests cover dose clearing, radius boundaries, voxel visibility, and radius
+configuration. Server startup validates the resolved drink effect and entity/terrain
+impact mappings. Connected-client checks are still needed for animations, throw
+prediction, inventory cancellation, artwork, crafting menus, and multiplayer impacts.
 
 ## Troubleshooting and upgrades
 

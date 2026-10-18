@@ -1,0 +1,17 @@
+{
+  "Type": "Condition",
+  "RequiredGameMode": "Adventure",
+  "Next": {
+    "Type": "Simple",
+    "RunTime": 0.25,
+    "Effects": { "ItemAnimationId": "Throw" },
+    "Next": {
+      "Type": "ModifyInventory",
+      "AdjustHeldItemQuantity": -1,
+      "Next": {
+        "Type": "Projectile",
+        "Config": "SolarRadiation_Treatment_Projectile"
+      }
+    }
+  }
+}

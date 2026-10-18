@@ -1,0 +1,24 @@
+{
+  "Parent": "Potion_Antidote",
+  "TranslationProperties": {
+    "Name": "server.items.SolarRadiation_Treatment.name",
+    "Description": "server.items.SolarRadiation_Treatment.description"
+  },
+  "InteractionVars": {
+    "Effect": {
+      "Interactions": [{ "Type": "SolarRadiation_Decontaminate" }]
+    }
+  },
+  "Recipe": {
+    "KnowledgeRequired": false,
+    "Input": [
+      { "ItemId": "Potion_Empty", "Quantity": 1 },
+      { "ItemId": "Ingredient_Fibre", "Quantity": 5 },
+      { "ItemId": "Ingredient_Life_Essence", "Quantity": 2 },
+      { "ItemId": "Ingredient_Sac_Venom", "Quantity": 1 }
+    ],
+    "BenchRequirement": [{ "Id": "Alchemybench", "Type": "Crafting", "Categories": ["Alchemy_Potions"] }],
+    "OutputQuantity": 1,
+    "TimeSeconds": 1
+  }
+}

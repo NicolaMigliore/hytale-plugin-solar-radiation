@@ -1,0 +1,28 @@
+{
+  "Parent": "Weapon_Bomb_Popberry",
+  "TranslationProperties": {
+    "Name": "server.items.SolarRadiation_Treatment_Splash.name",
+    "Description": "server.items.SolarRadiation_Treatment_Splash.description"
+  },
+  "Model": "Items/Weapons/Bomb/Potion_Onion.blockymodel",
+  "Texture": "Items/Weapons/Bomb/Potion_Onion_Poison.png",
+  "Icon": "Icons/ItemsGenerated/Weapon_Bomb_Potion_Poison.png",
+  "Particles": [],
+  "Interactions": {
+    "Primary": {
+      "RequireNewClick": true,
+      "Interactions": ["SolarRadiation_Throw_Treatment"]
+    }
+  },
+  "Recipe": {
+    "KnowledgeRequired": false,
+    "Input": [
+      { "ItemId": "SolarRadiation_Treatment", "Quantity": 1 },
+      { "ItemId": "Ingredient_Powder_Boom", "Quantity": 1 },
+      { "ItemId": "Ingredient_Fibre", "Quantity": 2 }
+    ],
+    "BenchRequirement": [{ "Id": "Alchemybench", "Type": "Crafting", "Categories": ["Alchemy_Bombs"] }],
+    "OutputQuantity": 1,
+    "TimeSeconds": 1
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "Spawners": [
+    { "SpawnerId": "SolarRadiation_Treatment_Droplets", "PositionOffset": { "Y": 0.1 } }
+  ]
+}

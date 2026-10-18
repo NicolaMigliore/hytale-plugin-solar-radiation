@@ -8,6 +8,8 @@ import io.github.nicolamigliore.components.RadiationComponent;
 import io.github.nicolamigliore.components.RadiationRuntimeComponent;
 import io.github.nicolamigliore.radiation.RadiationEffects;
 import io.github.nicolamigliore.radiation.RadiationSettings;
+import io.github.nicolamigliore.radiation.DecontaminationInteraction;
+import com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction;
 import io.github.nicolamigliore.systems.PlayerJoinSystem;
 import io.github.nicolamigliore.systems.RadiationDeathSystem;
 import io.github.nicolamigliore.systems.RadiationEntitySystem;
@@ -31,6 +33,10 @@ public class SolarRadiationPlugin extends JavaPlugin {
     protected void setup() {
         settings.save();
         var registry = getEntityStoreRegistry();
+        var spentFlask = registry.registerComponent(DecontaminationInteraction.SpentFlask.class,
+                DecontaminationInteraction.SpentFlask::new);
+        getCodecRegistry(Interaction.CODEC).register("SolarRadiation_Decontaminate",
+                DecontaminationInteraction.class, DecontaminationInteraction.codec(settings.get(), spentFlask));
         RadiationComponent.setComponentType(registry.registerComponent(
                 RadiationComponent.class, "SolarRadiation_EntityData", RadiationComponent.CODEC));
         RadiationRuntimeComponent.setComponentType(registry.registerComponent(
@@ -47,6 +53,7 @@ public class SolarRadiationPlugin extends JavaPlugin {
     @Override
     protected void start() {
         RadiationEffects.validateAssets();
+        DecontaminationInteraction.validateAssets();
     }
 
     @Override

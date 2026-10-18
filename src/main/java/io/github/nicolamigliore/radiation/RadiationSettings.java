@@ -11,6 +11,8 @@ import java.util.Set;
 public class RadiationSettings {
     public static final BuilderCodec<RadiationSettings> CODEC = BuilderCodec
             .builder(RadiationSettings.class, RadiationSettings::new)
+            .append(new KeyedCodec<>("TreatmentRadius", Codec.FLOAT),
+                    RadiationSettings::setTreatmentRadius, RadiationSettings::getTreatmentRadius).add()
             .append(new KeyedCodec<>("Enabled", Codec.BOOLEAN),
                     (s, v) -> s.enabled = v, s -> s.enabled).add()
             .append(new KeyedCodec<>("DisabledWorlds", Codec.STRING_ARRAY),
@@ -36,6 +38,16 @@ public class RadiationSettings {
             .build();
 
     private boolean enabled = true;
+    private float treatmentRadius = 3f;
+
+    public float getTreatmentRadius() { return treatmentRadius; }
+
+    private void setTreatmentRadius(float radius) {
+        if (!Float.isFinite(radius) || radius <= 0 || radius > 16) {
+            throw new IllegalArgumentException("TreatmentRadius must be finite, greater than 0 and at most 16");
+        }
+        treatmentRadius = radius;
+    }
     private Set<String> disabledWorlds = Set.of();
     private float exposureDosePerSecond = 1f;
     private float recoveryDosePerSecond = 1f;
