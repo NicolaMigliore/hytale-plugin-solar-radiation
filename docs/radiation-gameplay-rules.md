@@ -110,12 +110,20 @@ visuals and planned HUD for feedback. Mob symptoms are defined separately below.
   One or two do not. A roof works without enclosing walls.
 - Full opaque terrain and construction blocks count by default. Air, fluids,
   leaves, ordinary glass, and partial blocks do not. A specifically tagged
-  radiation-shielding glass may count. Explicit shielding tags take precedence;
+  radiation-shielding glass may count. Configured material overrides take precedence;
   map actual Hytale block assets when implementing exposure.
+- Current material settings support exact asset IDs and native tags. Exact IDs
+  override broad tags; exclusions win at equal specificity. The default tag
+  exclusion is `Family=Leaves`. `ShelterDepth` defaults to 3 and must be positive.
 - Sheltering follows the entity's current head position. Reevaluate movement,
   roof changes, world transfers, and day/night transitions within one second.
   An unavailable block column is unknown: pause solar input and recovery until
   it can be evaluated, rather than treating unloaded terrain as a safe bunker.
+- Terrain checks default to every 0.5 simulation seconds, configurable through
+  `ExposureCheckIntervalSeconds` in the range greater than 0 through 1. Day/night
+  transitions follow the world's native clock on the next tick. Scans stop at
+  the heightmap bound, skip air/missing sections in runs, and end once shelter
+  is proven; they do not scan the whole world height every tick.
 - Sleeping and disconnecting do not reset dose. Shelter blocks sunlight only;
   nearby contamination has its own rules.
 

@@ -96,7 +96,7 @@ plugin errors. This verifies server startup and registration; client connection
 and radiation gameplay still require an in-game check. `clean` removes this
 startup-check world; it leaves `devserver` intact.
 
-Verified on Windows with JDK 25.0.2 on 17 October 2026: clean build and 35 tests,
+Verified on Windows with JDK 25.0.2 on 18 October 2026: clean build and 50 tests,
 plugin and effect-pack loading, server ready on localhost, and clean shutdown.
 Existing development saves were not used. The base game emits asset warnings
 during startup. Player-facing effects and damage timing still need an in-game
@@ -148,16 +148,47 @@ inside the selected server directory. Edit it while the server is stopped:
 {
   "Enabled": true,
   "DisabledWorlds": [],
+  "ShelterDepth": 3,
+  "ExposureCheckIntervalSeconds": 0.5,
   "ShieldingBlocks": [],
-  "NonShieldingBlocks": []
+  "NonShieldingBlocks": [],
+  "ShieldingTags": [],
+  "NonShieldingTags": ["Family=Leaves"]
 }
 ```
 
 `DisabledWorlds` contains exact world names; disabled worlds freeze dose and
 suppress symptoms. Exclude instances/worlds without a solar cycle here as needed.
-`ShieldingBlocks` and `NonShieldingBlocks` accept exact block asset IDs; exclusions
-win if an ID appears in both lists. These provide explicit material overrides;
-tag-based shielding and configurable rates/thresholds are future work.
+Older configuration files receive the new defaults automatically. `ShelterDepth`
+must be at least 1. `ExposureCheckIntervalSeconds` must be finite, greater than
+zero, and at most 1. Dose rates and thresholds remain fixed for now.
+
+`ShieldingBlocks` and `NonShieldingBlocks` accept exact, case-sensitive block asset
+IDs. `ShieldingTags` and `NonShieldingTags` accept native Hytale tags such as
+`Type=Rock` or `SolarRadiation=Shielding`; a tag key alone matches any of its
+values. Tags must exist on the relevant assets. The leaf-family exclusion also
+handles custom opaque leaf cubes.
+
+Material precedence is: excluded ID, included ID, excluded tag, included tag,
+then the defaults. Thus exact IDs can make exceptions to broad tag rules;
+exclusion wins at equal specificity. Air/empty material never shields. By
+default, full opaque cubes with the `Full` hitbox shield; transparent/cutout
+blocks, leaves, model blocks, slabs, and fences do not. Add a particular glass
+block's ID to `ShieldingBlocks` to make it count as shielding.
+
+Daylight follows the current world's game clock and Hytale's sunrise/day-length
+constants. Sunrise includes its first second; sunset ends exposure. Day/night
+changes take effect on the next gameplay tick, without terrain scans at night.
+Weather and visual shadows do not affect exposure.
+
+Position and roof changes are sampled at the configured interval, including
+while moving. This prevents fast movement from forcing scans every tick. Scans
+stop at the terrain/collision heightmap bound or after enough shielding layers.
+They reuse section lookups, skip entire known-air and missing 32-block sections,
+and classify each encountered block type once per scan. Missing sections remain
+unknown, not air: unresolved columns pause dose changes unless enough known
+shielding already proves shelter. Material decisions are not cached between
+scans, so roof and asset changes are picked up on the next check.
 
 ## Radiation ECS foundation
 

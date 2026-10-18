@@ -62,12 +62,13 @@ public class RadiationSystem extends EntityTickingSystem<EntityStore> {
         if (subject == RadiationSubject.MOB) {
             // Mob dose is opt-in. A later contamination system supplies it; sunlight never does.
             runtime.setExposure(Exposure.RECOVERING);
-        } else if (runtime.shouldCheckExposure(dt)) {
+        } else {
             var time = store.getResource(WorldTimeResource.getResourceType());
-            // Hytale's scaled solar phase maps sunrise/sunset to quarter/three-quarter day.
-            if (!time.isScaledDayTimeWithinRange(0.25, 0.75)) {
+            if (!Daylight.isDay(time)) {
+                // Night is known safe without terrain reads. Reset the timer for the next sunrise.
+                runtime.invalidateExposure();
                 runtime.setExposure(Exposure.NIGHT);
-            } else {
+            } else if (runtime.shouldCheckExposure(dt, settings.getExposureCheckInterval())) {
                 var position = transform.getPosition();
                 var bounds = buffer.getComponent(ref, BoundingBox.getComponentType());
                 double headHeight = bounds == null ? 1.8 : bounds.getBoundingBox().max.y;

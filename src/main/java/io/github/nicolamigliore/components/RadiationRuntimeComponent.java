@@ -25,9 +25,13 @@ public class RadiationRuntimeComponent implements Component<EntityStore> {
     public void setLastReportedStage(int stage) { lastReportedStage = stage; }
 
     public boolean shouldCheckExposure(float dt) {
+        return shouldCheckExposure(dt, 0.5f);
+    }
+
+    public boolean shouldCheckExposure(float dt, float interval) {
         exposureCheckRemaining -= dt;
         if (exposureCheckRemaining > 0) return false;
-        exposureCheckRemaining = 0.5f;
+        exposureCheckRemaining = interval;
         return true;
     }
 
