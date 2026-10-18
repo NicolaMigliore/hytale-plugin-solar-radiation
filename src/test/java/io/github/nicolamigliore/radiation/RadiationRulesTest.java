@@ -11,6 +11,8 @@ import java.time.Instant;
 import static org.junit.jupiter.api.Assertions.*;
 
 class RadiationRulesTest {
+    private final RadiationSettings settings = new RadiationSettings();
+
     @ParameterizedTest
     @CsvSource({"0,0", "9.999,0", "10,1", "29.999,1", "30,2", "59.999,2", "60,3",
             "89.999,3", "90,4", "119.999,4", "120,5", "179.999,5", "180,6"})
@@ -41,15 +43,15 @@ class RadiationRulesTest {
     @Test
     void exposureAndRecoveryUseElapsedSecondsAndClampAtLimits() {
         float fine = 0;
-        for (int i = 0; i < 100; i++) fine = Exposure.EXPOSED.advance(fine, 0.1f);
-        assertEquals(Exposure.EXPOSED.advance(0, 10), fine, 0.001f);
-        assertEquals(180f, Exposure.EXPOSED.advance(179, 10));
-        assertEquals(0f, Exposure.SHELTERED.advance(5, 10));
-        assertEquals(90f, Exposure.NIGHT.advance(100, 10));
+        for (int i = 0; i < 100; i++) fine = Exposure.EXPOSED.advance(fine, 0.1f, settings);
+        assertEquals(Exposure.EXPOSED.advance(0, 10, settings), fine, 0.001f);
+        assertEquals(180f, Exposure.EXPOSED.advance(179, 10, settings));
+        assertEquals(0f, Exposure.SHELTERED.advance(5, 10, settings));
+        assertEquals(90f, Exposure.NIGHT.advance(100, 10, settings));
         for (Exposure paused : new Exposure[]{Exposure.UNKNOWN, Exposure.EXEMPT, Exposure.DISABLED, Exposure.DEAD}) {
-            assertEquals(100f, paused.advance(100, 10));
+            assertEquals(100f, paused.advance(100, 10, settings));
         }
-        assertThrows(IllegalArgumentException.class, () -> Exposure.EXPOSED.advance(0, Float.NaN));
+        assertThrows(IllegalArgumentException.class, () -> Exposure.EXPOSED.advance(0, Float.NaN, settings));
     }
 
     @Test

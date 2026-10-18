@@ -15,6 +15,12 @@ public class RadiationSettings {
                     (s, v) -> s.enabled = v, s -> s.enabled).add()
             .append(new KeyedCodec<>("DisabledWorlds", Codec.STRING_ARRAY),
                     (s, v) -> s.disabledWorlds = entries(v), s -> s.disabledWorlds.toArray(String[]::new)).add()
+            .append(new KeyedCodec<>("ExposureDosePerSecond", Codec.FLOAT),
+                    (s, v) -> s.exposureDosePerSecond = doseRate("ExposureDosePerSecond", v),
+                    RadiationSettings::getExposureDosePerSecond).add()
+            .append(new KeyedCodec<>("RecoveryDosePerSecond", Codec.FLOAT),
+                    (s, v) -> s.recoveryDosePerSecond = doseRate("RecoveryDosePerSecond", v),
+                    RadiationSettings::getRecoveryDosePerSecond).add()
             .append(new KeyedCodec<>("ShelterDepth", Codec.INTEGER),
                     RadiationSettings::setShelterDepth, RadiationSettings::getShelterDepth).add()
             .append(new KeyedCodec<>("ExposureCheckIntervalSeconds", Codec.FLOAT),
@@ -31,6 +37,8 @@ public class RadiationSettings {
 
     private boolean enabled = true;
     private Set<String> disabledWorlds = Set.of();
+    private float exposureDosePerSecond = 1f;
+    private float recoveryDosePerSecond = 1f;
     private int shelterDepth = 3;
     private float exposureCheckInterval = 0.5f;
     private Set<String> shieldingBlocks = Set.of();
@@ -45,6 +53,15 @@ public class RadiationSettings {
     public Set<String> getNonShieldingTags() { return nonShieldingTags; }
     public int getShelterDepth() { return shelterDepth; }
     public float getExposureCheckInterval() { return exposureCheckInterval; }
+    public float getExposureDosePerSecond() { return exposureDosePerSecond; }
+    public float getRecoveryDosePerSecond() { return recoveryDosePerSecond; }
+
+    private static float doseRate(String name, float value) {
+        if (!Float.isFinite(value) || value < 0) {
+            throw new IllegalArgumentException(name + " must be finite and nonnegative");
+        }
+        return value;
+    }
 
     private void setShelterDepth(int depth) {
         if (depth < 1) throw new IllegalArgumentException("ShelterDepth must be at least 1");

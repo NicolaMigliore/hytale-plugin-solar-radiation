@@ -6,12 +6,12 @@ import static io.github.nicolamigliore.radiation.RadiationSymptoms.Poison.*;
 public enum RadiationSubject {
     PLAYER, MOB;
 
-    public float advance(float dose, Exposure exposure, float seconds) {
+    public float advance(float dose, Exposure exposure, float seconds, RadiationSettings settings) {
         var effectiveExposure = switch (exposure) {
             case DEAD, DISABLED, EXEMPT -> exposure;
             default -> this == MOB ? Exposure.RECOVERING : exposure;
         };
-        return effectiveExposure.advance(dose, seconds);
+        return effectiveExposure.advance(dose, seconds, settings);
     }
 
     public RadiationSymptoms symptoms(float dose) {

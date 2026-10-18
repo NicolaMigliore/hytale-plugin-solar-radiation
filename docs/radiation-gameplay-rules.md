@@ -44,6 +44,13 @@ Sources: [constants](https://github.com/NicolaMigliore/mc-datapack-solar-radiati
   Changing the clock or sleeping does not grant skipped-time exposure/recovery.
   Low server tick rates must not multiply rates by the number of ticks.
 
+Implemented configuration: `ExposureDosePerSecond` and `RecoveryDosePerSecond`
+default to 1 and accept finite, nonnegative values. Zero disables the corresponding
+change. Recovery uses the same configured rate for safe players and opted-in mobs;
+mob solar immunity is unchanged. Thresholds and native symptom mappings remain
+fixed. Each update resolves the final dose's stage and effect set, including
+decreases and jumps across multiple thresholds; stages are never saved separately.
+
 From zero, continuous unprotected exposure reaches the first symptoms after
 10 seconds, poisoning damage after 120 seconds, and stronger poisoning after
 180 seconds. Recovering from maximum dose to zero takes 180 safe seconds.

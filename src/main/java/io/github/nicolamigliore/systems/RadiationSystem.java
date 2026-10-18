@@ -78,7 +78,7 @@ public class RadiationSystem extends EntityTickingSystem<EntityStore> {
             }
         }
         float previousDose = radiation.getTotalRadiations();
-        radiation.setTotalRadiations(subject.advance(previousDose, runtime.getExposure(), dt));
+        radiation.setTotalRadiations(subject.advance(previousDose, runtime.getExposure(), dt, settings));
         int stage = radiation.getRadLevel();
         RadiationEffects.update(ref, effects, subject.symptoms(radiation.getTotalRadiations()), buffer);
 

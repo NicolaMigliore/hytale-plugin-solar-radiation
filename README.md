@@ -96,7 +96,8 @@ plugin errors. This verifies server startup and registration; client connection
 and radiation gameplay still require an in-game check. `clean` removes this
 startup-check world; it leaves `devserver` intact.
 
-Verified on Windows with JDK 25.0.2 on 18 October 2026: clean build and 50 tests,
+Verified on Windows with JDK 25.0.2 on 18 October 2026: clean build and 66 tests.
+The preceding shelter-detection change also passed an isolated check of
 plugin and effect-pack loading, server ready on localhost, and clean shutdown.
 Existing development saves were not used. The base game emits asset warnings
 during startup. Player-facing effects and damage timing still need an in-game
@@ -106,7 +107,8 @@ check with a connected client.
 
 The player loop currently includes dose clamped to 0 through 180, stages 0 through
 6, per-world day/night detection, three full opaque blocks of overhead shelter,
-and one dose per second of exposure/recovery. Unknown terrain pauses dose changes.
+and configurable exposure/recovery rates (both default to one dose per simulation
+second). Unknown terrain pauses dose changes.
 Creative mode pauses dose and suppresses symptoms; switch to Adventure mode to
 test normal gameplay. Death clears dose. Saved dose survives relog/restart and
 world transfers, including older saves; exposure is recomputed after loading.
@@ -141,6 +143,12 @@ to night should allow recovery without advancing dose for the skipped hours.
 After `/radiation set --amount=0`, radiation-owned effects should clear on the
 next update. Relog/restart at a nonzero dose to check persistence.
 
+Check stage changes in both directions: expose a player just below 10, 30, 60,
+90, 120, or 180 dose, then take shelter after crossing the threshold. Stage 6
+downgrades from Poison T2 to T1 below 180; poison clears below 120 and Slow clears
+below 10. A fast rate or long tick can skip stages; symptoms use the final dose.
+Recovery removes symptoms but does not restore lost health.
+
 The server creates `mods/io.github.nicolamigliore_SolarRadiationPlugin/Radiation.json`
 inside the selected server directory. Edit it while the server is stopped:
 
@@ -148,6 +156,8 @@ inside the selected server directory. Edit it while the server is stopped:
 {
   "Enabled": true,
   "DisabledWorlds": [],
+  "ExposureDosePerSecond": 1.0,
+  "RecoveryDosePerSecond": 1.0,
   "ShelterDepth": 3,
   "ExposureCheckIntervalSeconds": 0.5,
   "ShieldingBlocks": [],
@@ -161,7 +171,16 @@ inside the selected server directory. Edit it while the server is stopped:
 suppress symptoms. Exclude instances/worlds without a solar cycle here as needed.
 Older configuration files receive the new defaults automatically. `ShelterDepth`
 must be at least 1. `ExposureCheckIntervalSeconds` must be finite, greater than
-zero, and at most 1. Dose rates and thresholds remain fixed for now.
+zero, and at most 1. Stage thresholds remain 10, 30, 60, 90, 120, and 180.
+
+`ExposureDosePerSecond` controls player solar accumulation. `RecoveryDosePerSecond`
+controls safe-player and opted-in mob recovery. Both must be finite and nonnegative;
+zero disables that change without clearing existing dose or symptoms. For a quick
+rate check, set exposure to 2 and recovery to 0.5, restart, and compare stats over
+ten simulation seconds: roughly 20 dose gained outside or 5 lost in shelter/night.
+Keep away from the 0/180 limits for this check. Rates use elapsed simulation time,
+independently of the terrain sampling interval; world-clock skips do not add dose
+or recovery for the skipped hours.
 
 `ShieldingBlocks` and `NonShieldingBlocks` accept exact, case-sensitive block asset
 IDs. `ShieldingTags` and `NonShieldingTags` accept native Hytale tags such as
@@ -202,8 +221,9 @@ an entity creates fresh runtime state without changing dose.
 Players receive dose data automatically. Mobs opt in only when another system
 or a debug command attaches `RadiationComponent`; ordinary mobs are unaffected.
 The shared loop processes any entity carrying dose data without requiring player
-components. Opted-in mobs recover one dose per second and receive low-tier poison
-at any positive dose. They never acquire solar dose, player Slow, stronger poison,
+components. Opted-in mobs recover at the configured rate (one dose per second by
+default) and receive low-tier poison at any positive dose. They never acquire
+solar dose, player Slow, stronger poison,
 or player chat messages. Death clears dose for both players and mobs.
 
 To test a mob, look directly at it within 10 blocks and run:
@@ -214,7 +234,7 @@ To test a mob, look directly at it within 10 blocks and run:
 /radiation set --target --amount=0
 ```
 
-Expect `RECOVERING`, roughly one dose lost per second even in sunlight, low-tier
+Expect `RECOVERING`, dose lost at the recovery rate even in sunlight, low-tier
 poison without Slow, and radiation-owned poison removed at zero. The same flag
 works with `add` and can target another player. Dose changes still require
 `solarradiation.admin` or OP. Automatic spread and susceptibility selection remain

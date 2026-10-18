@@ -9,10 +9,16 @@ public enum Exposure {
         this.doseDirection = doseDirection;
     }
 
-    public float advance(float dose, float seconds) {
+    public float advance(float dose, float seconds, RadiationSettings settings) {
         if (!Float.isFinite(seconds) || seconds < 0) {
             throw new IllegalArgumentException("Elapsed seconds must be finite and nonnegative");
         }
-        return RadLevelTable.clampDose(dose + doseDirection * seconds);
+        float rate = switch (doseDirection) {
+            case 1 -> settings.getExposureDosePerSecond();
+            case -1 -> -settings.getRecoveryDosePerSecond();
+            default -> 0f;
+        };
+        // Double intermediates keep finite rates/timesteps from overflowing before clamping.
+        return RadLevelTable.clampDose((float) (RadLevelTable.clampDose(dose) + (double) rate * seconds));
     }
 }
