@@ -1,5 +1,6 @@
 {
   "Parent": "Poison_T1",
   "Infinite": true,
-  "OverlapBehavior": "Ignore"
+  "OverlapBehavior": "Ignore",
+  "RemovalBehavior": "Complete"
 }

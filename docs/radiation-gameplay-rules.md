@@ -97,6 +97,16 @@ every tick or restarting the poison damage interval. Replace the poison tier on
 stage changes; remove radiation-owned effects when no longer justified. Test
 coexistence with effects from other sources rather than assuming how they stack.
 
+Implementation uses infinite radiation-owned effects with complete removal.
+Dose and effect reconciliation run before Hytale's native effect tick, so falling
+below a threshold clears the outgoing poison before that tick's damage processing.
+An unchanged tier keeps its active effect and damage timer; switching tiers starts
+the replacement tier's native cooldown. Death/respawn cleanup also removes owned
+effects immediately. Health changes remain entirely within Hytale's native poison
+damage system. Automated controller-call tests cover escalation, downgrades,
+clearing, rejected/reapplied effects, and preservation of unrelated effects;
+actual damage, defense interactions, movement, and visuals require in-game checks.
+
 Mining/gathering slowdown, stamina-regeneration penalties, forced nausea,
 percentage-based damage, custom damage floors, and bespoke radiation markers are
 deferred. Add no custom camera movement or flashing. Use the existing effect

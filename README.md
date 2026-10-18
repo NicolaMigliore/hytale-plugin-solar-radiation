@@ -96,8 +96,9 @@ plugin errors. This verifies server startup and registration; client connection
 and radiation gameplay still require an in-game check. `clean` removes this
 startup-check world; it leaves `devserver` intact.
 
-Verified on Windows with JDK 25.0.2 on 18 October 2026: clean build and 66 tests.
-The preceding shelter-detection change also passed an isolated check of
+Verified on Windows with JDK 25.0.2 on 18 October 2026: clean build and 78 tests,
+including effect escalation, recovery, and unrelated-effect preservation. An
+isolated startup check verified
 plugin and effect-pack loading, server ready on localhost, and clean shutdown.
 Existing development saves were not used. The base game emits asset warnings
 during startup. Player-facing effects and damage timing still need an in-game
@@ -117,6 +118,16 @@ Stages 1 through 4 apply the stock Slow mechanics. Stage 5 adds Poison T1; stage
 6 replaces it with Poison T2. Dedicated effect IDs isolate radiation cleanup from
 other slow/poison effects. Effects are maintained without resetting damage timers.
 Stock Slow has a 50% speed multiplier and frost-themed visuals.
+Poison T1 deals 6 base poison damage every 5 seconds; T2 deals 12 every 5 seconds.
+Native defenses and damage rules determine the final damage; radiation does not
+write health directly or impose a nonlethal floor. Replacing a poison tier starts
+that tier's native cooldown; keeping the same tier preserves its timer.
+
+Dose and symptom updates run before Hytale's native effect tick. Falling below a
+threshold removes the outgoing effect completely, without its remaining duration
+lingering. Death and respawn also clear radiation-owned effects immediately.
+Startup validates that radiation assets are infinite, support complete removal,
+and define poison damage with a positive cooldown.
 
 After authenticating and joining the server, use `/op self` if you need operator
 permissions. Dose-changing debug commands require `solarradiation.admin` (or OP).
@@ -148,6 +159,16 @@ Check stage changes in both directions: expose a player just below 10, 30, 60,
 downgrades from Poison T2 to T1 below 180; poison clears below 120 and Slow clears
 below 10. A fast rate or long tick can skip stages; symptoms use the final dose.
 Recovery removes symptoms but does not restore lost health.
+
+For repeatable damage checks, temporarily set both dose rates below to 0 and
+restart; this keeps each debug dose stable. In Adventure mode, compare dose 140
+(T1) with 180 (T2), allowing at least five seconds for a damage pulse. Set 119 to
+clear poison, then 9 to clear Slow. Check that an unrelated poison/slow source
+survives radiation cleanup, Creative mode suppresses radiation symptoms, and
+death/respawn clears dose and radiation effects. Restore the desired rates and
+restart afterward. These connected-client checks cover actual health changes,
+native defenses, visuals, and movement; automated tests cover effect-controller
+calls and preservation of active effect instances.
 
 The server creates `mods/io.github.nicolamigliore_SolarRadiationPlugin/Radiation.json`
 inside the selected server directory. Edit it while the server is stopped:

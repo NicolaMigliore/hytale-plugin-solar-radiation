@@ -1,5 +1,6 @@
 {
   "Parent": "Slow",
   "Infinite": true,
-  "OverlapBehavior": "Ignore"
+  "OverlapBehavior": "Ignore",
+  "RemovalBehavior": "Complete"
 }
