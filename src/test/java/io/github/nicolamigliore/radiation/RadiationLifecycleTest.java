@@ -40,7 +40,6 @@ class RadiationLifecycleTest {
         entity.addComponent(doseType, new RadiationComponent(89.5f));
         var runtime = new RadiationRuntimeComponent();
         runtime.setExposure(Exposure.EXPOSED);
-        runtime.setLastReportedStage(3);
         entity.addComponent(runtimeType, runtime);
         var saved = entity.cloneSerializable(registry.getData());
         assertEquals(89.5f, saved.getComponent(doseType).getTotalRadiations());
@@ -50,7 +49,6 @@ class RadiationLifecycleTest {
         var restored = store.getComponent(ref, runtimeType);
         assertNotNull(restored);
         assertEquals(Exposure.UNKNOWN, restored.getExposure());
-        assertEquals(-1, restored.getLastReportedStage());
         assertEquals(89.5f, store.getComponent(ref, doseType).getTotalRadiations());
     }
 

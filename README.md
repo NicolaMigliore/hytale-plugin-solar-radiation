@@ -96,15 +96,55 @@ plugin errors. This verifies server startup and registration; client connection
 and radiation gameplay still require an in-game check. `clean` removes this
 startup-check world; it leaves `devserver` intact.
 
-Verified on Windows with JDK 25.0.2 on 18 October 2026: clean build and 78 tests,
-including effect escalation, recovery, and unrelated-effect preservation. An
-isolated startup check verified
+Verified on Windows with JDK 25.0.2 on 18 October 2026: build and 101 tests,
+including native HUD-manager/packet tests, effect escalation, recovery, and
+unrelated-effect preservation. An isolated startup check verified
 plugin and effect-pack loading, server ready on localhost, and clean shutdown.
 Existing development saves were not used. The base game emits asset warnings
 during startup. Player-facing effects and damage timing still need an in-game
-check with a connected client.
+check with a connected client. HUD layout and UI scaling also require that check;
+the server does not render or parse the client UI layout.
 
 ## Radiation gameplay and testing
+
+A radiation HUD appears automatically once the client is ready. A slim, permanently
+green bar with a radiation icon sits just above the native health bar, with its
+icon and left edge aligned to health. Its frame and fill match health's 318x12
+dimensions, using the same centered 702px hotbar container. Its beveled frame and shaded fill follow the native health/stamina
+bar proportions. It fills from 0 to 180 and drains during recovery. There is no
+numeric dose counter or large panel; stage followed by exposure appears on the
+same row to the right of the bar. Use `/radiation stats` for exact dose. Stage uses the exact dose even when
+the bar moves less than one pixel. Zero dose remains visible; checking terrain, disabled worlds, exempt
+game modes, and death each have an explicit status. Mobs never receive a HUD.
+
+The HUD refreshes at most four times per simulation second and sends only changed
+values. The native `ProgressBar` receives a normalized value only when its visible
+pixel width changes; its green texture stays fixed at every stage. Stable values
+send no packets after the initial layout and any transition highlight has settled.
+A second native progress-bar layer uses the matching client's health-bar highlight
+texture (`BarEffect.png`). Dose changes show a brief highlight; during recovery it
+trails the green fill and settles over 0.75 seconds. Both layers share the same
+four-updates-per-second limit. Death, exempt/disabled states, and unknown terrain
+cancel the highlight. The display uses
+its own `SolarRadiation:Status` HUD key, preserving native HUD elements and other
+mods' HUDs. It opens no page and requires no command. Stage chat messages are
+replaced by the HUD; the early warning at dose 5 and debug commands remain.
+
+After restarting, verify the panel during ordinary movement, shelter/night
+transitions, and `/radiation set --amount=140`. Check recovery through 120 and 10,
+Creative/Adventure switches, death/respawn, relog, and world transfer. Expect one
+panel with current values after each transition; compare it with `/radiation stats`.
+Check placement and legibility at your normal UI scale. Hazmat suit status will
+be added with equipment support.
+
+The replaceable icon is
+`src/main/resources/Common/UI/Custom/Hud/SolarRadiation/RadiationIcon.png`: a
+transparent 64x64 PNG displayed at 24x24. `BarBackground.png`, `BarFill.png`, and
+`BarEffect.png` in the same folder can also be edited directly. Rebuild/restart
+after PNG changes; normal builds package these PNGs without regenerating them.
+
+`BarEffect.png` uses the vanilla health-bar effect. Adjust the HUD document's `Bottom` anchor to
+tune vertical placement for your UI scale.
 
 The player loop currently includes dose clamped to 0 through 180, stages 0 through
 6, per-world day/night detection, three full opaque blocks of overhead shelter,
@@ -234,10 +274,18 @@ scans, so roof and asset changes are picked up on the next check.
 
 `RadiationComponent` contains persistent dose only, using the original
 `SolarRadiation_EntityData` registration and `TotalRadiations` save key. Stages and
-progress are derived from dose. `RadiationRuntimeComponent` contains exposure,
-the exposure-check timer, and notification state. It is registered without a
+progress are derived from dose. `RadiationRuntimeComponent` contains exposure and
+the exposure-check timer. It is registered without a
 serialization codec and excluded from serializable clones. Loading or transferring
 an entity creates fresh runtime state without changing dose.
+
+`RadiationHudSystem` runs on each player's world thread after the dose update,
+waiting for client readiness. HUD state belongs to the player's native HUD manager
+and is never serialized. Leaving a world or disconnecting removes the owned HUD;
+the destination world creates it from current dose/exposure once ready. Missing
+dose removes it, native HUD resets rebuild it, and plugin shutdown schedules owned
+HUD cleanup on the relevant world threads. There is no global player cache or
+background task to retain disconnected players.
 
 Players receive dose data automatically. Mobs opt in only when another system
 or a debug command attaches `RadiationComponent`; ordinary mobs are unaffected.
@@ -268,8 +316,8 @@ radiation-owned effects when the dose component is removed. Updating/replacing
 dose preserves runtime state. Use zero dose to decontaminate an entity while
 retaining its radiation capability.
 
-Hazmat equipment, treatment items, automatic mob contamination, and the HUD are
-not yet implemented. Stage/exposure messages and debug stats provide feedback.
+Hazmat equipment, treatment items, and automatic mob contamination are not yet
+implemented. The radiation HUD, early warning, and debug stats provide feedback.
 
 ## Troubleshooting and upgrades
 

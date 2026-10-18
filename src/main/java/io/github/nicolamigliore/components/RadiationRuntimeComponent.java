@@ -12,7 +12,6 @@ public class RadiationRuntimeComponent implements Component<EntityStore> {
 
     private Exposure exposure = Exposure.UNKNOWN;
     private float exposureCheckRemaining;
-    private int lastReportedStage = -1;
 
     public static void setComponentType(ComponentType<EntityStore, RadiationRuntimeComponent> componentType) {
         type = componentType;
@@ -21,8 +20,6 @@ public class RadiationRuntimeComponent implements Component<EntityStore> {
     public static ComponentType<EntityStore, RadiationRuntimeComponent> getComponentType() { return type; }
     public Exposure getExposure() { return exposure; }
     public void setExposure(Exposure value) { exposure = value; }
-    public int getLastReportedStage() { return lastReportedStage; }
-    public void setLastReportedStage(int stage) { lastReportedStage = stage; }
 
     public boolean shouldCheckExposure(float dt) {
         return shouldCheckExposure(dt, 0.5f);

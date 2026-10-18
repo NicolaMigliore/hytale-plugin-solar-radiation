@@ -59,7 +59,6 @@ class RadiationRulesTest {
         var original = new RadiationComponent(89.5f);
         var runtime = new RadiationRuntimeComponent();
         runtime.setExposure(Exposure.EXPOSED);
-        runtime.setLastReportedStage(3);
         assertTrue(runtime.shouldCheckExposure(0));
         var transferred = original.clone();
         assertEquals(89.5f, transferred.getTotalRadiations());
@@ -67,7 +66,6 @@ class RadiationRulesTest {
         assertEquals(89.5f, original.getTotalRadiations());
         var transferredRuntime = runtime.clone();
         assertEquals(Exposure.UNKNOWN, transferredRuntime.getExposure());
-        assertEquals(-1, transferredRuntime.getLastReportedStage());
         assertTrue(transferredRuntime.shouldCheckExposure(0));
         assertNull(runtime.cloneSerializable());
     }

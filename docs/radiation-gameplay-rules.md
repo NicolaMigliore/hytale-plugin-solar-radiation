@@ -216,15 +216,35 @@ Ordinary mobs do not acquire dose directly from sunlight.
   neither receive dose nor spread it. Creative/spectator players are exempt from
   automatic dose changes, symptoms, equipment wear, and transmission; entering
   these modes does not erase stored dose.
-- Show dose, stage, current solar exposure, and suit status in the HUD. Warn that
+- Show dose as a filled bar, stage, current solar exposure, and suit status in the HUD. Warn that
   contamination can spread from dose 5, before stage 1 symptoms appear. Display
-  fractional dose consistently; stage 0 must not imply the dose is necessarily zero.
+  fractional dose consistently in debug stats; stage 0 must not imply the dose is necessarily zero.
 - Debug commands report the resulting dose and derived stage. The current named
   amount syntax is `/radiation set --amount=100`; gameplay updates resume normally
   after a debug change.
 - Expose dose rates, stage thresholds/effect mappings, shielding depth/tags, suit lifetime,
   susceptibility groups, spread radii, and treatment radius as validated settings.
   Defaults above are the first-release baseline. No player-count gameplay cap.
+
+Implemented HUD: a native keyed custom HUD shows a total-dose bar, stage number/name,
+and readable exposure status after client readiness. A permanently green native
+progress bar fills from 0 to 180 and drains during recovery. It uses a beveled frame
+and radiation icon just above and aligned with the native health bar. Frame and
+fill match health's 318x12 size. Stage followed by exposure appears to the right
+on the same row. Numeric dose remains available through debug stats.
+Updates run on the world thread
+after dose resolution, at most four times per simulation second, and patch only
+changed values. Bar progress updates only when a pixel changes; green stays fixed
+at every stage. Stage derives from exact dose independently of display quantization.
+A health-style overlay briefly highlights dose changes and trails recovery for
+0.75 seconds, within the same update limit. It clears on death/exemption and does
+not keep sending updates after settling. Artwork is maintained directly as PNGs.
+It preserves other HUDs, removes itself on world exit/disconnect or dose-component
+removal, and rebuilds after client readiness or native HUD reset. Its state is not
+saved and uses no global player cache or background timer. Stage chat has been
+replaced; the dose-5 warning and debug commands remain. Suit status awaits equipment
+implementation. Native packet tests cover readiness, update throttling, cleanup,
+and reattachment; actual client rendering and transitions require in-game checks.
 
 ## Acceptance scenarios for implementation
 

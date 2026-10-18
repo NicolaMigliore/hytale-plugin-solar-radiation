@@ -90,19 +90,11 @@ public class RadiationSystem extends EntityTickingSystem<EntityStore> {
         }
         float previousDose = radiation.getTotalRadiations();
         radiation.setTotalRadiations(subject.advance(previousDose, runtime.getExposure(), dt, settings));
-        int stage = radiation.getRadLevel();
         RadiationEffects.update(ref, effects, subject.symptoms(radiation.getTotalRadiations()), buffer);
 
         if (recipient == null) return;
         if (previousDose < 5 && radiation.getTotalRadiations() >= 5) {
             recipient.sendMessage(Message.raw("Radiation detected. Seek shelter."));
-        }
-        if (stage != runtime.getLastReportedStage()) {
-            if (stage > 0 || runtime.getLastReportedStage() > 0) {
-                recipient.sendMessage(Message.raw("Radiation stage %d | dose %.2f / 180".formatted(
-                        stage, radiation.getTotalRadiations())));
-            }
-            runtime.setLastReportedStage(stage);
         }
     }
 }

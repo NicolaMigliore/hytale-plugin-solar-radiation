@@ -1,0 +1,43 @@
+Group {
+  Group #RadiationPanel {
+    // Same centered 702px container and 24px icon + 4px gap as native Health.ui.
+    // Health sits at Bottom: 120; this row sits just above it.
+    Anchor: (Bottom: 146, Width: 702, Height: 12);
+    LayoutMode: Left;
+
+    Group #RadiationIcon {
+      Anchor: (Width: 24, Height: 24, Right: 4, Top: -8);
+      Background: "SolarRadiation/RadiationIcon.png";
+    }
+
+    Group #RadiationTrack {
+      Anchor: (Width: 318, Height: 12);
+      Background: "SolarRadiation/BarBackground.png";
+
+      ProgressBar #RadiationFill {
+        Anchor: (Width: 318, Height: 12);
+        BarTexturePath: "SolarRadiation/BarFill.png";
+        Value: 0;
+      }
+
+      ProgressBar #RadiationBarEffect {
+        Anchor: (Width: 318, Height: 12);
+        BarTexturePath: "SolarRadiation/BarEffect.png";
+        Value: 0;
+        Visible: false;
+      }
+    }
+
+    Label #RadiationStage {
+      Anchor: (Left: 12, Width: 140, Height: 18, Top: -3);
+      Text: "Stage 0 - Healthy";
+      Style: (FontSize: 11, RenderBold: true, VerticalAlignment: Center, TextColor: #b5cbb8);
+    }
+
+    Label #RadiationExposure {
+      Anchor: (Left: 12, Width: 192, Height: 18, Top: -3);
+      Text: "Exposure: Checking terrain...";
+      Style: (FontSize: 11, VerticalAlignment: Center, TextColor: #96a99c);
+    }
+  }
+}
